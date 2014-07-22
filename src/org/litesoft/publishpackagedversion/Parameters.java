@@ -10,6 +10,7 @@ import java.util.*;
 /**
  * Four Parameters are needed (Keys for the Arguments):
  * - Target ("Target") e.g. "jre"
+ * - DeploymentGroup ("DeploymentGroup") e.g. "Alpha" - (See AbstractParameters for details) but uses the first from the file before non-Keyed.
  * - Bucket ("BucketURL") - Bucket URL to Publish into (See AbstractParameters for details).
  * - Version ("Version") - optional will be selected from the latest 'zip' file found &
  * - LocalVerDir ("LocalVerDir") - See AbstractParameters for details.
@@ -41,11 +42,15 @@ public class Parameters extends AbstractParameters {
         if ( getVersion() == null ) {
             setVersionOptionally( extractLatestVersion() );
         }
-        return validateVersion();
+        return validateVersion() & validateDeploymentGroup();
     }
 
-    public Parameters bucketURL( String pbucketURL ) {
-        return setBucketURL( pbucketURL );
+    public Parameters deploymentGroup( String pDeploymentGroup ) {
+        return setDeploymentGroupOptionally( pDeploymentGroup );
+    }
+
+    public Parameters bucketURL( String pBucketURL ) {
+        return setBucketURL( pBucketURL );
     }
 
     public Parameters version( String pVersion ) {
@@ -59,6 +64,7 @@ public class Parameters extends AbstractParameters {
     public static Parameters from( ArgsToMap pArgs ) {
         return finish( pArgs,
                        new Parameters( getTargetFrom( pArgs ) )
+                               .deploymentGroup( getDeploymentGroupFrom( pArgs ) )
                                .bucketURL( getBucketURLFrom( pArgs ) )
                                .version( getVersionFrom( pArgs ) )
                                .localVerDir( getLocalVerDirFrom( pArgs ) ) );
