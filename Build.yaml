@@ -1,11 +1,12 @@
 onejar: PublishPackagedVersion
 
 dependencies:
-- ../LiteSoftServerUtils
+- ../LiteSoftAWS
+- ../PackagedVersionCommon
 
 classpath:
-- 3rdPartyCode|**.jar
 - ../LiteSoftServerUtils/libs|**.jar
+- ../LiteSoftAWS/libs|**.jar
 
 resources: 
 - LICENSE

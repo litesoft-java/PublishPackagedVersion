@@ -14,10 +14,10 @@ import java.util.*;
  * - Target ("Target") e.g. "jre"
  * - Bucket ("BucketURL") - Bucket URL to Publish into (See AbstractParameters for details).
  * - Version ("Version") - optional will be selected from the latest 'zip' file found &
- * - LocalVerDir ("LocalVerDir") - See AbstractParameters for details.
+ * - LocalVerDir ("LocalVerDir") - See ParameterLocalVerDir for details.
  * <p/>
  * In addition, the DeploymentGroup will automatically be selected from the first entry of the "DeploymentGroupSet"
- * file (See AbstractParameters for details).
+ * file (See ParameterDeploymentGroup & DeploymentGroupSet for details).
  * <p/>
  * As each Argument key starts w/ a unique letter, the 'permutations' option is active.
  * Any non-keyed values are applied in the order above (excess keyed entries are noted, excess non-keyed entries are an Error)
@@ -26,7 +26,7 @@ public class Parameters extends AbstractParameters {
     private ParameterTarget mTarget = new ParameterTarget();
     private ParameterBucketURL mBucketURL = new ParameterBucketURL();
     private ParameterVersion mVersion = new ParameterVersion();
-    private ParameterLocalVerDir mLocalVerDir = new ParameterLocalVerDir();
+    private ParameterLocalVerDir mLocalVerDir = ParameterLocalVerDir.existing();
 
     private Parameter<?>[] mParameters = {mTarget, mBucketURL, mVersion, mLocalVerDir};
 
