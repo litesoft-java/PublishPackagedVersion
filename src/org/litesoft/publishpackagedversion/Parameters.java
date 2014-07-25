@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * Four Parameters are needed (Keys for the Arguments):
  * - Target ("Target") e.g. "jre"
- * - Bucket ("BucketURL") - Bucket URL to Publish into (See AbstractParameters for details).
+ * - Bucket ("Bucket") - Bucket to Publish into (See ParameterBucket for details).
  * - Version ("Version") - optional will be selected from the latest 'zip' file found &
  * - LocalVerDir ("LocalVerDir") - See ParameterLocalVerDir for details.
  * <p/>
@@ -24,11 +24,11 @@ import java.util.*;
  */
 public class Parameters extends AbstractParameters {
     private ParameterTarget mTarget = new ParameterTarget();
-    private ParameterBucketURL mBucketURL = new ParameterBucketURL();
+    private ParameterBucket mBucket = new ParameterBucket();
     private ParameterVersion mVersion = new ParameterVersion();
     private ParameterLocalVerDir mLocalVerDir = ParameterLocalVerDir.existing();
 
-    private Parameter<?>[] mParameters = {mTarget, mBucketURL, mVersion, mLocalVerDir};
+    private Parameter<?>[] mParameters = {mTarget, mBucket, mVersion, mLocalVerDir};
 
     private ParameterDeploymentGroup mDeploymentGroup = new ParameterDeploymentGroup();
 
@@ -40,8 +40,12 @@ public class Parameters extends AbstractParameters {
         return mTarget.get();
     }
 
-    public String getBucketURL() {
-        return mBucketURL.get();
+    public ParameterBucket getParameterBucket() {
+        return mBucket;
+    }
+
+    public String getBucket() {
+        return mBucket.get();
     }
 
     public final String getVersion() {
@@ -58,7 +62,7 @@ public class Parameters extends AbstractParameters {
 
     @Override
     public boolean validate() {
-        if ( mTarget.validate() && mBucketURL.validate() && mLocalVerDir.validate() ) {
+        if ( mTarget.validate() && mBucket.validate() && mLocalVerDir.validate() ) {
             mVersion.setIfNull( new Supplier<String>() {
                 @Override
                 public String get() {

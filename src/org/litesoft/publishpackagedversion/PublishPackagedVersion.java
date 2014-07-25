@@ -1,6 +1,10 @@
 package org.litesoft.publishpackagedversion;
 
+import org.litesoft.aws.s3.*;
+import org.litesoft.commonfoundation.exceptions.*;
 import org.litesoft.commonfoundation.typeutils.*;
+import org.litesoft.packageversioned.*;
+import org.litesoft.server.file.*;
 import org.litesoft.server.util.*;
 
 import java.io.*;
@@ -23,16 +27,62 @@ public class PublishPackagedVersion {
         System.out.println( "Done!" );
     }
 
+    private Persister createPersister()
+            throws IOException {
+        ParameterBucket zBucket = mParameters.getParameterBucket();
+        return new S3Persister( BucketCredentials.get( zBucket.get() ), new Bucket( zBucket.getS3Endpoint(), zBucket.get() ) );
+    }
+
     private void process()
             throws IOException {
-        String zDeploymentGroup = mParameters.getDeploymentGroup();
-        String zTarget = mParameters.getTarget();
-        String zVersion = mParameters.getVersion();
-        File zFromFile = new File( mParameters.getLocalVerDir(), Paths.forwardSlashCombine( zTarget, zVersion + ".zip" ) );
-        String zToFile = Paths.forwardSlashCombine( mParameters.getBucketURL(), zTarget, zVersion + ".zip" );
-        System.out.println( "  Deploy To: " + zDeploymentGroup );
-        System.out.println( "       Copy: " + zFromFile.getPath() );
-        System.out.println( "         To: " + zToFile );
-        // ToDo: XXX
+        System.out.println( "Deploy '" + getTarget() + "' vs '" + getVersion() + "' To: " +
+                            getDeploymentGroup() + " (Bucket: " + mParameters.getBucket() + ")" );
+        new Publisher( createPersister() ).process();
+    }
+
+    private String getVersion() {
+        return mParameters.getVersion();
+    }
+
+    private String getTarget() {
+        return mParameters.getTarget();
+    }
+
+    private String getDeploymentGroup() {
+        return mParameters.getDeploymentGroup();
+    }
+
+    protected class Publisher {
+        protected final Persister mPersister;
+
+        public Publisher( Persister pPersister ) {
+            mPersister = pPersister;
+        }
+
+        public void process() {
+            transferZipFile();
+            createDeploymentGroupVersionFile( "-" + getVersion() );
+            createDeploymentGroupVersionFile( "" );
+        }
+
+        private void createDeploymentGroupVersionFile( String pSpecificVersionSuffix ) {
+            String zPath = createPath( getDeploymentGroup() + pSpecificVersionSuffix + ".txt" );
+            System.out.println( "  Writing: " + zPath );
+            mPersister.putTextFile( zPath, Strings.toLines( getVersion() ) );
+        }
+
+        private String createPath( String pFileName ) {
+            return "versioned/" + getTarget() + "/" + pFileName;
+        }
+
+        public void transferZipFile() {
+            File zFromFile = new File( mParameters.getLocalVerDir(), Paths.forwardSlashCombine( getTarget(), getVersion() + ".zip" ) );
+            if ( !zFromFile.isFile() ) {
+                throw new FileSystemException( "File Not Found: " + zFromFile );
+            }
+            String zPath = createPath( getVersion() + ".zip" );
+            System.out.println( "  Copy: " + zFromFile + " -> " + zPath );
+            mPersister.putFile( zPath, FileUtils.asInputStream( zFromFile ) );
+        }
     }
 }
