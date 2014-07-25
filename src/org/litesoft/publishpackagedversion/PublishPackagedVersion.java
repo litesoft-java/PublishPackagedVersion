@@ -19,17 +19,20 @@ public class PublishPackagedVersion {
     public static void main( String[] args )
             throws Exception {
         System.out.println( "PublishPackagedVersion vs " + VERSION );
-        new PublishPackagedVersion( Parameters.from( new ArgsToMap( args ) ) ).process();
+        new PublishPackagedVersion( new Parameters( new ArgsToMap( args ) ) ).process();
         System.out.println( "Done!" );
     }
 
     private void process()
             throws IOException {
+        String zDeploymentGroup = mParameters.getDeploymentGroup();
         String zTarget = mParameters.getTarget();
         String zVersion = mParameters.getVersion();
         File zFromFile = new File( mParameters.getLocalVerDir(), Paths.forwardSlashCombine( zTarget, zVersion + ".zip" ) );
         String zToFile = Paths.forwardSlashCombine( mParameters.getBucketURL(), zTarget, zVersion + ".zip" );
-        System.out.println( "    Copy: " + zFromFile.getPath() );
-        System.out.println( "      To: " + zToFile );
+        System.out.println( "  Deploy To: " + zDeploymentGroup );
+        System.out.println( "       Copy: " + zFromFile.getPath() );
+        System.out.println( "         To: " + zToFile );
+        // ToDo: XXX
     }
 }

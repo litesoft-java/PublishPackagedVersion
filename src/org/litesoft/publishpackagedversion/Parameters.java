@@ -4,74 +4,77 @@ import org.litesoft.packageversioned.*;
 import org.litesoft.server.file.*;
 import org.litesoft.server.util.*;
 
+import java8.util.function.*;
+
 import java.io.*;
 import java.util.*;
 
 /**
  * Four Parameters are needed (Keys for the Arguments):
  * - Target ("Target") e.g. "jre"
- * - DeploymentGroup ("DeploymentGroup") e.g. "Alpha" - (See AbstractParameters for details) but uses the first from the file before non-Keyed.
  * - Bucket ("BucketURL") - Bucket URL to Publish into (See AbstractParameters for details).
  * - Version ("Version") - optional will be selected from the latest 'zip' file found &
  * - LocalVerDir ("LocalVerDir") - See AbstractParameters for details.
  * <p/>
+ * In addition, the DeploymentGroup will automatically be selected from the first entry of the "DeploymentGroupSet"
+ * file (See AbstractParameters for details).
  * <p/>
  * As each Argument key starts w/ a unique letter, the 'permutations' option is active.
  * Any non-keyed values are applied in the order above (excess keyed entries are noted, excess non-keyed entries are an Error)
  */
 public class Parameters extends AbstractParameters {
-    public Parameters( String pTarget ) {
-        setTarget( pTarget );
+    private ParameterTarget mTarget = new ParameterTarget();
+    private ParameterBucketURL mBucketURL = new ParameterBucketURL();
+    private ParameterVersion mVersion = new ParameterVersion();
+    private ParameterLocalVerDir mLocalVerDir = new ParameterLocalVerDir();
+
+    private Parameter<?>[] mParameters = {mTarget, mBucketURL, mVersion, mLocalVerDir};
+
+    private ParameterDeploymentGroup mDeploymentGroup = new ParameterDeploymentGroup();
+
+    public Parameters( ArgsToMap pArgs ) {
+        populate( mParameters, pArgs );
     }
 
-    @Override
+    public final String getTarget() {
+        return mTarget.get();
+    }
+
     public String getBucketURL() {
-        return super.getBucketURL();
+        return mBucketURL.get();
     }
 
-    @Override
+    public final String getVersion() {
+        return mVersion.get();
+    }
+
     public File getLocalVerDir() {
-        return super.getLocalVerDir();
+        return mLocalVerDir.get();
+    }
+
+    public String getDeploymentGroup() {
+        return mDeploymentGroup.get();
     }
 
     @Override
     public boolean validate() {
-        if ( !(validateBucketUrl() & validateLocalVerDir()) ) {
-            return false;
+        if ( mTarget.validate() && mBucketURL.validate() && mLocalVerDir.validate() ) {
+            mVersion.setIfNull( new Supplier<String>() {
+                @Override
+                public String get() {
+                    return extractLatestVersion();
+                }
+            } );
         }
-        if ( getVersion() == null ) {
-            setVersionOptionally( extractLatestVersion() );
+        if ( validate( mParameters ) ) {
+            mDeploymentGroup.set( DeploymentGroupSet.get().first() ); // Auto Set the DeploymentGroup
+            return true;
         }
-        return validateVersion() & validateDeploymentGroup();
-    }
-
-    public Parameters deploymentGroup( String pDeploymentGroup ) {
-        return setDeploymentGroupOptionally( pDeploymentGroup );
-    }
-
-    public Parameters bucketURL( String pBucketURL ) {
-        return setBucketURL( pBucketURL );
-    }
-
-    public Parameters version( String pVersion ) {
-        return setVersionOptionally( pVersion );
-    }
-
-    public Parameters localVerDir( String pLocalVerDir ) {
-        return setLocalVerDir( pLocalVerDir );
-    }
-
-    public static Parameters from( ArgsToMap pArgs ) {
-        return finish( pArgs,
-                       new Parameters( getTargetFrom( pArgs ) )
-                               .deploymentGroup( getDeploymentGroupFrom( pArgs ) )
-                               .bucketURL( getBucketURLFrom( pArgs ) )
-                               .version( getVersionFrom( pArgs ) )
-                               .localVerDir( getLocalVerDirFrom( pArgs ) ) );
+        return false;
     }
 
     private String extractLatestVersion() {
-        List<String> zZipFileNames = getTargetZipFileNames( new FilePersister( getLocalVerDir() ) );
+        List<String> zZipFileNames = mTarget.getTargetZipFileNames( new FilePersister( getLocalVerDir() ) );
         if ( zZipFileNames.isEmpty() ) {
             return null;
         }
