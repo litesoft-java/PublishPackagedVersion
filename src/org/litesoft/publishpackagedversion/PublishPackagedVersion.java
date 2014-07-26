@@ -35,8 +35,8 @@ public class PublishPackagedVersion {
 
     private void process()
             throws IOException {
-        System.out.println( "Deploy '" + getTarget() + "' vs '" + getVersion() + "' To: " +
-                            getDeploymentGroup() + " (Bucket: " + mParameters.getBucket() + ")" );
+        System.out.println( "Deploy (Bucket: " + mParameters.getBucket() + ") '" + getTarget() + "' vs '" + getVersion() + "' To: " +
+                            getDeploymentGroup() );
         new Publisher( createPersister() ).process();
     }
 
