@@ -35,6 +35,7 @@
     <orderEntry type="module" module-name="LiteSoftAWS" />
     <orderEntry type="library" name="AWSsdk" level="project" />
     <orderEntry type="library" name="3rdParty" level="project" />
+    <orderEntry type="module" module-name="PackagedVersionCommonWithAWS" />
   </component>
 </module>
 
